@@ -44,3 +44,9 @@ resilience4j:
           - com.ledger.eventservice.exception.AccountServiceUnavailableException
         ignore-exceptions:
           - com.ledger.eventservice.exception.AccountServiceRejectedException
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    com.ledger: INFO
