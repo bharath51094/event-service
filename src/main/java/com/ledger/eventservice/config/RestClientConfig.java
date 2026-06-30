@@ -14,9 +14,12 @@ import java.time.Duration;
 @Configuration
 public class RestClientConfig {
 
+    private static final String INTERNAL_API_KEY_HEADER = "X-Internal-Api-Key";
+
     @Bean
     public RestClient accountServiceRestClient(RestClient.Builder builder,
-                                               @Value("${account-service.base-url}") String baseUrl) {
+                                               @Value("${account-service.base-url}") String baseUrl,
+                                               @Value("${account-service.api-key}") String apiKey) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Duration.ofSeconds(2));
         requestFactory.setReadTimeout(Duration.ofSeconds(3));
@@ -31,6 +34,8 @@ public class RestClientConfig {
                     if (StringUtils.hasText(traceId)) {
                         request.getHeaders().add(TraceIdFilter.TRACE_ID_HEADER, traceId);
                     }
+                    // Authenticate to the internal Account Service with the shared secret.
+                    request.getHeaders().add(INTERNAL_API_KEY_HEADER, apiKey);
                     return execution.execute(request, body);
                 })
                 .build();

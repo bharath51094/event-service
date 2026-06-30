@@ -19,12 +19,14 @@ server:
   port: 8080
 account-service:
   base-url: http://localhost:8081
+  # Shared secret presented to the internal Account Service on every call (matches its internal.api-key).
+  api-key: local-internal-api-key
 management:
   endpoints:
     web:
       base-path: /
       exposure:
-        include: health
+        include: health,metrics,prometheus
       discovery:
         enabled: false
   endpoint:

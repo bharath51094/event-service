@@ -79,6 +79,15 @@ SELECT * FROM EVENTS WHERE ACCOUNT_ID = 'acct-123' ORDER BY EVENT_TIMESTAMP;
 | Logs | **structured JSON** (ECS) on the console — each line has `@timestamp`, `log.level`, `service.name`, `traceId`, `message` |
 | Tracing | every request gets a trace id (from the `X-Trace-Id` header if supplied, else generated). It is logged on every line, **propagated to the Account Service** via `X-Trace-Id`, and echoed on the response header — so one request is traceable across both services |
 | Health | `GET /health` (Spring Boot Actuator) — reports `UP`/`DOWN` plus DB connectivity |
+| Metrics | `GET /metrics` and `GET /prometheus` (Actuator + Micrometer). Built-in `http_server_requests_*` give request count / error rate / latency histogram per endpoint for free; `resilience4j_circuitbreaker_*` expose breaker state. Plus a **custom domain metric** `ledger_events_processed_total{type,outcome}` — see below |
+
+**Custom metric — `ledger_events_processed_total`:** a Micrometer `Counter` tagged `type`
+(`CREDIT`/`DEBIT`) and `outcome` (`created` / `duplicate` / `rejected` / `unavailable`). It captures
+what Actuator's HTTP metrics cannot: the **idempotency-replay rate** (created vs duplicate) and the
+**business reason** for failures rather than just the HTTP status. It is recorded by a **Spring AOP
+aspect** (`EventOutcomeMetricsAspect`), so the service layer stays free of instrumentation (observability
+as a cross-cutting concern). The aspect binds to a `@TrackEventOutcome` marker annotation on the method
+rather than its name, so renaming the method can't silently detach the metric.
 
 ### Resiliency (the Gateway's call to the Account Service)
 
@@ -117,6 +126,7 @@ Event payload (`POST /events`):
 | `GET` | `/events?account={accountId}` | List an account's events, chronological | `200` | ordered by `eventTimestamp` |
 | `GET` | `/accounts/{accountId}/balance` | Balance (proxied to Account Service) | `200` | `404` unknown account; `503` if Account Service down |
 | `GET` | `/health` | Health check | `200` | Actuator, includes DB status |
+| `GET` | `/metrics`, `/prometheus` | Metrics | `200` | Actuator + Micrometer; includes custom `ledger_events_processed_total` |
 
 Examples:
 ```bash
@@ -136,4 +146,7 @@ curl http://localhost:8080/accounts/acct-123/balance
 
 # Health
 curl http://localhost:8080/health
+
+# Metrics (Prometheus scrape format) — grep the custom domain metric
+curl -s http://localhost:8080/prometheus | grep ledger_events_processed_total
 ```

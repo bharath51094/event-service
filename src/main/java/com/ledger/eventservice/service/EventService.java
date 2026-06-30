@@ -3,6 +3,7 @@ package com.ledger.eventservice.service;
 import com.ledger.eventservice.client.AccountServiceClient;
 import com.ledger.eventservice.exception.EventNotFoundException;
 import com.ledger.eventservice.mapper.EventMapper;
+import com.ledger.eventservice.metrics.TrackEventOutcome;
 import com.ledger.eventservice.model.Event;
 import com.ledger.eventservice.pojo.EventRequest;
 import com.ledger.eventservice.pojo.EventResponse;
@@ -25,6 +26,7 @@ public class EventService {
     private final EventMapper eventMapper;
     private final AccountServiceClient accountServiceClient;
 
+    @TrackEventOutcome
     public EventCreationResult createEvent(EventRequest request) {
         Optional<Event> existingEvent = eventRepository.findByEventId(request.getEventId());
         if (existingEvent.isPresent()) {
