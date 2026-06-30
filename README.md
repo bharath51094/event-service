@@ -119,14 +119,15 @@ Event payload (`POST /events`):
 }
 ```
 
-| Method | Endpoint | Description | Success | Notes |
-|---|---|---|---|---|
-| `POST` | `/events` | Submit a transaction event | `201` new / `200` duplicate | Idempotent on `eventId`; `503` if Account Service is down |
-| `GET` | `/events/{id}` | Get a single event by `eventId` | `200` | `404` if not found |
+| Method | Endpoint | Description                             | Success | Notes |
+|---|---|-----------------------------------------|---|---|
+| `POST` | `/events` | Submit a transaction event              | `201` new / `200` duplicate | Idempotent on `eventId`; `503` if Account Service is down |
+| `GET` | `/events/{id}` | Get a single event by `eventId`         | `200` | `404` if not found |
 | `GET` | `/events?account={accountId}` | List an account's events, chronological | `200` | ordered by `eventTimestamp` |
-| `GET` | `/accounts/{accountId}/balance` | Balance (proxied to Account Service) | `200` | `404` unknown account; `503` if Account Service down |
-| `GET` | `/health` | Health check | `200` | Actuator, includes DB status |
-| `GET` | `/metrics`, `/prometheus` | Metrics | `200` | Actuator + Micrometer; includes custom `ledger_events_processed_total` |
+| `GET` | `/accounts/{accountId}/balance` | Balance (proxied to Account Service)    | `200` | `404` unknown account; `503` if Account Service down |
+| `GET` | `/health` | Health check                            | `200` | Actuator, includes DB status |
+| `GET` | `/metrics`, `/prometheus` | Metrics                                 | `200` | Actuator + Micrometer; includes custom `ledger_events_processed_total` |
+| `GET` | `/eventoutcomes` | Human-readable custom metric breakdown  | `200` | Per `type`+`outcome` count of `ledger_events_processed_total` with a plain-English description each |
 
 Examples:
 ```bash

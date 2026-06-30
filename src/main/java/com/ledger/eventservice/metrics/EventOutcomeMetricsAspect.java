@@ -40,22 +40,22 @@ public class EventOutcomeMetricsAspect {
         EventRequest request = (EventRequest) proceedingJoinPoint.getArgs()[0];
         try {
             EventCreationResult result = (EventCreationResult) proceedingJoinPoint.proceed();
-            record(request.getType(), result.created() ? "created" : "duplicate");
+            record(request.getType(), result.created() ? EventOutcome.CREATED : EventOutcome.DUPLICATE);
             return result;
         } catch (AccountServiceRejectedException rejectedException) {
-            record(request.getType(), "rejected");
+            record(request.getType(), EventOutcome.REJECTED);
             throw rejectedException;
         } catch (AccountServiceUnavailableException unavailableException) {
-            record(request.getType(), "unavailable");
+            record(request.getType(), EventOutcome.UNAVAILABLE);
             throw unavailableException;
         }
     }
 
-    private void record(String type, String outcome) {
+    private void record(String type, EventOutcome outcome) {
         Counter.builder(EVENTS_PROCESSED_METRIC)
                 .description("Event-create attempts by type and outcome")
                 .tag("type", type)
-                .tag("outcome", outcome)
+                .tag("outcome", outcome.getTag())
                 .register(meterRegistry)
                 .increment();
     }
